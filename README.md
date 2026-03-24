@@ -23,6 +23,7 @@ Many skilled workers lack a platform to help them get noticed. Meanwhile, countl
 - [Environment Variables](#environment-variables)
 - [Contributing](#contributing)
 - [License](#license)
+- [Quick Start Guide](packages/api/QUICK_START_GUIDE.md)
 
 ---
 
