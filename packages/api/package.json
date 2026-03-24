@@ -11,7 +11,9 @@
     "test": "vitest",
     "migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",
-    "seed": "tsx src/database/seed.ts"
+    "seed": "tsx src/database/seed.ts",
+    "admin:create": "tsx src/commands/create-admin.ts",
+    "db:reset": "tsx src/commands/reset-db.ts"
   },
   "prisma": {
     "seed": "tsx src/database/seed.ts"
