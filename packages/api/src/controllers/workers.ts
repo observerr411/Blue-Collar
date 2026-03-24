@@ -2,17 +2,27 @@ import type { Request, Response } from 'express'
 import { db } from '../db.js'
 
 export async function listWorkers(req: Request, res: Response) {
-  const { category, location, page = '1', limit = '20' } = req.query
-  const workers = await db.worker.findMany({
-    where: {
-      isActive: true,
-      ...(category ? { categoryId: String(category) } : {}),
-    },
-    skip: (Number(page) - 1) * Number(limit),
-    take: Number(limit),
-    include: { category: true },
+  const { category, location, search, page = '1', limit = '20' } = req.query
+  const where = {
+    isActive: true,
+    ...(category ? { categoryId: String(category) } : {}),
+    ...(search ? { name: { contains: String(search), mode: 'insensitive' as const } } : {}),
+  }
+  const [workers, total] = await Promise.all([
+    db.worker.findMany({
+      where,
+      skip: (Number(page) - 1) * Number(limit),
+      take: Number(limit),
+      include: { category: true },
+    }),
+    db.worker.count({ where }),
+  ])
+  return res.json({
+    data: workers,
+    meta: { total, page: Number(page), limit: Number(limit), pages: Math.ceil(total / Number(limit)) },
+    status: 'success',
+    code: 200,
   })
-  return res.json({ data: workers, status: 'success', code: 200 })
 }
 
 export async function showWorker(req: Request, res: Response) {
