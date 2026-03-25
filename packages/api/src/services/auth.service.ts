@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken'
 import crypto from 'node:crypto'
 import { sendVerificationEmail, sendPasswordResetEmail } from '../mailer/index.js'
 import { AppError } from './AppError.js'
+import { sanitizeUser } from '../models/user.model.js'
 import type { LoginBody, RegisterBody } from '../interfaces/index.js'
 
 function generateVerificationToken(userId: string) {
@@ -28,6 +29,10 @@ export async function loginUser(email: string, password: string) {
     )
   }
   const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET!, { expiresIn: '7d' })
+  return { data: sanitizeUser(user), token }
+}
+
+export async function registerUser({ email, password, firstName, lastName }: RegisterBody) {
   const { password: _, verificationToken: __, verificationTokenExpiry: ___, ...data } = user
   return { data, token }
 }
@@ -55,6 +60,7 @@ export async function registerUser(
     console.error('[mailer] Failed to send verification email:', err),
   )
 
+  return sanitizeUser(user)
   const { password: _, verificationToken: __, verificationTokenExpiry: ___, ...data } = user
   return data
 }
