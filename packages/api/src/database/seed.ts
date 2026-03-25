@@ -86,6 +86,7 @@ async function main() {
       db.worker.deleteMany(),
       db.user.deleteMany(),
       db.category.deleteMany(),
+      db.location.deleteMany(),
     ])
     console.log('🗑️  Cleared all data.')
   }
