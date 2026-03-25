@@ -1,6 +1,6 @@
 import "./globals.css";
 import type { ReactNode } from "react";
-import { AuthProvider } from "@/hooks/useAuth";
+import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata = { title: "BlueCollar", description: "Find Skilled Workers Near You" };
 
