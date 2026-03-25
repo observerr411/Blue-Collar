@@ -1,12 +1,15 @@
-import './globals.css'
-import type { ReactNode } from 'react'
+import "./globals.css";
+import type { ReactNode } from "react";
+import { AuthProvider } from "@/hooks/useAuth";
 
-export const metadata = { title: 'BlueCollar', description: 'Find Skilled Workers Near You' }
+export const metadata = { title: "BlueCollar", description: "Find Skilled Workers Near You" };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
-  )
+  );
 }
