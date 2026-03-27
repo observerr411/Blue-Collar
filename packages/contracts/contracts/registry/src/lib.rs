@@ -3,18 +3,13 @@
 
 #![no_std]
 
+use bluecollar_types::Worker;
 use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, String, Symbol, Vec};
 
-#[contracttype]
-#[derive(Clone)]
-pub struct Worker {
-    pub id: Symbol,
-    pub owner: Address,
-    pub name: String,
-    pub category: Symbol,
-    pub is_active: bool,
-    pub wallet: Address,
-}
+/// ~1 year in ledgers (5s per ledger)
+const TTL_EXTEND_TO: u32 = 535_000;
+/// Extend when TTL drops below ~6 months
+const TTL_THRESHOLD: u32 = 267_500;
 
 #[contracttype]
 pub enum DataKey {
@@ -40,15 +35,19 @@ impl RegistryContract {
             wallet: owner,
         };
 
-        env.storage().persistent().set(&DataKey::Worker(id.clone()), &worker);
+        let key = DataKey::Worker(id.clone());
+        env.storage().persistent().set(&key, &worker);
+        env.storage().persistent().extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
 
+        let list_key = DataKey::WorkerList;
         let mut list: Vec<Symbol> = env
             .storage()
             .persistent()
-            .get(&DataKey::WorkerList)
+            .get(&list_key)
             .unwrap_or(Vec::new(&env));
         list.push_back(id);
-        env.storage().persistent().set(&DataKey::WorkerList, &list);
+        env.storage().persistent().set(&list_key, &list);
+        env.storage().persistent().extend_ttl(&list_key, TTL_THRESHOLD, TTL_EXTEND_TO);
     }
 
     /// Get a worker by id
@@ -66,7 +65,9 @@ impl RegistryContract {
             .expect("Worker not found");
         assert!(worker.owner == caller, "Not authorized");
         worker.is_active = !worker.is_active;
-        env.storage().persistent().set(&DataKey::Worker(id), &worker);
+        let key = DataKey::Worker(id);
+        env.storage().persistent().set(&key, &worker);
+        env.storage().persistent().extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
     }
 
     /// List all registered worker ids
@@ -75,6 +76,12 @@ impl RegistryContract {
             .persistent()
             .get(&DataKey::WorkerList)
             .unwrap_or(Vec::new(&env))
+    }
+
+    /// Extend the TTL of a worker entry — callable by anyone to keep data alive
+    pub fn extend_worker_ttl(env: Env, id: Symbol) {
+        let key = DataKey::Worker(id);
+        env.storage().persistent().extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
     }
 
     /// Upgrade the contract WASM (admin only)
