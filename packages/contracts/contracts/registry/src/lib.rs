@@ -3,28 +3,13 @@
 
 #![no_std]
 
-use soroban_sdk::{
-    contract, contractimpl, contracttype, symbol_short, Address, Env, String, Symbol, Vec,
-};
+use bluecollar_types::Worker;
+use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, String, Symbol, Vec};
 
-// =============================================================================
-// Data types
-// =============================================================================
-
-// =============================================================================
-// Data types
-// =============================================================================
-
-#[contracttype]
-#[derive(Clone)]
-pub struct Worker {
-    pub id: Symbol,
-    pub owner: Address,
-    pub name: String,
-    pub category: Symbol,
-    pub is_active: bool,
-    pub wallet: Address,
-}
+/// ~1 year in ledgers (5s per ledger)
+const TTL_EXTEND_TO: u32 = 535_000;
+/// Extend when TTL drops below ~6 months
+const TTL_THRESHOLD: u32 = 267_500;
 
 #[contracttype]
 pub enum DataKey {
@@ -162,15 +147,20 @@ impl RegistryContract {
             wallet: owner.clone(),
         };
 
-        env.storage().persistent().set(&DataKey::Worker(id.clone()), &worker);
+        let key = DataKey::Worker(id.clone());
+        env.storage().persistent().set(&key, &worker);
+        env.storage().persistent().extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
 
+        let list_key = DataKey::WorkerList;
         let mut list: Vec<Symbol> = env
             .storage()
             .persistent()
-            .get(&DataKey::WorkerList)
+            .get(&list_key)
             .unwrap_or(Vec::new(&env));
-        list.push_back(id.clone());
-        env.storage().persistent().set(&DataKey::WorkerList, &list);
+        list.push_back(id);
+        env.storage().persistent().set(&list_key, &list);
+        env.storage().persistent().extend_ttl(&list_key, TTL_THRESHOLD, TTL_EXTEND_TO);
+    }
 
     /// Get a worker by id.
     pub fn get_worker(env: Env, id: Symbol) -> Option<Worker> {
