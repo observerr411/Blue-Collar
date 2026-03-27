@@ -15,6 +15,7 @@ const TTL_THRESHOLD: u32 = 267_500;
 pub enum DataKey {
     Worker(Symbol),
     WorkerList,
+    Admin,
 }
 
 #[contract]
@@ -22,6 +23,20 @@ pub struct RegistryContract;
 
 #[contractimpl]
 impl RegistryContract {
+    /// Initialise the contract and set the admin address
+    pub fn initialize(env: Env, admin: Address) {
+        assert!(
+            !env.storage().instance().has(&DataKey::Admin),
+            "Already initialized"
+        );
+        env.storage().instance().set(&DataKey::Admin, &admin);
+    }
+
+    /// Return the admin address
+    pub fn get_admin(env: Env) -> Address {
+        env.storage().instance().get(&DataKey::Admin).expect("Not initialized")
+    }
+
     /// Register a new worker on-chain
     pub fn register(env: Env, id: Symbol, owner: Address, name: String, category: Symbol) {
         owner.require_auth();
@@ -88,5 +103,35 @@ impl RegistryContract {
     pub fn upgrade(env: Env, admin: Address, new_wasm_hash: soroban_sdk::BytesN<32>) {
         admin.require_auth();
         env.deployer().update_current_contract_wasm(new_wasm_hash);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use soroban_sdk::testutils::Address as _;
+    use soroban_sdk::Env;
+
+    #[test]
+    fn test_get_admin() {
+        let env = Env::default();
+        let contract_id = env.register_contract(None, RegistryContract);
+        let client = RegistryContractClient::new(&env, &contract_id);
+
+        let admin = Address::generate(&env);
+        client.initialize(&admin);
+        assert_eq!(client.get_admin(), admin);
+    }
+
+    #[test]
+    #[should_panic(expected = "Already initialized")]
+    fn test_initialize_twice_panics() {
+        let env = Env::default();
+        let contract_id = env.register_contract(None, RegistryContract);
+        let client = RegistryContractClient::new(&env, &contract_id);
+
+        let admin = Address::generate(&env);
+        client.initialize(&admin);
+        client.initialize(&admin);
     }
 }
