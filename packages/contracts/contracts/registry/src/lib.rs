@@ -184,6 +184,61 @@ impl RegistryContract {
         );
     }
 
+    /// Update a worker's name and/or category (owner only)
+    /// Emits: WorkerUpdated(id, name, category)
+    pub fn update(env: Env, id: Symbol, caller: Address, name: String, category: Symbol) {
+        caller.require_auth();
+        let mut worker: Worker = env
+            .storage()
+            .persistent()
+            .get(&DataKey::Worker(id.clone()))
+            .expect("Worker not found");
+        assert!(worker.owner == caller, "Not authorized");
+        worker.name = name.clone();
+        worker.category = category.clone();
+        env.storage().persistent().set(&DataKey::Worker(id.clone()), &worker);
+
+        // Event: WorkerUpdated
+        // topics: ["WrkUpd", id]
+        // data:   (name, category)
+        env.events().publish(
+            (symbol_short!("WrkUpd"), id),
+            (name, category),
+        );
+    }
+
+    /// Deregister a worker (owner only)
+    /// Emits: WorkerDeregistered(id)
+    pub fn deregister(env: Env, id: Symbol, caller: Address) {
+        caller.require_auth();
+        let worker: Worker = env
+            .storage()
+            .persistent()
+            .get(&DataKey::Worker(id.clone()))
+            .expect("Worker not found");
+        assert!(worker.owner == caller, "Not authorized");
+        env.storage().persistent().remove(&DataKey::Worker(id.clone()));
+
+        // Remove from list
+        let mut list: Vec<Symbol> = env
+            .storage()
+            .persistent()
+            .get(&DataKey::WorkerList)
+            .unwrap_or(Vec::new(&env));
+        if let Some(pos) = list.iter().position(|x| x == id) {
+            list.remove(pos as u32);
+        }
+        env.storage().persistent().set(&DataKey::WorkerList, &list);
+
+        // Event: WorkerDeregistered
+        // topics: ["WrkDrg", id]
+        // data:   caller (owner address)
+        env.events().publish(
+            (symbol_short!("WrkDrg"), id),
+            caller,
+        );
+    }
+
     /// Update a worker's name and category (worker owner only).
     /// Emits: WorkerUpdated
     pub fn update(env: Env, id: Symbol, caller: Address, name: String, category: Symbol) {
