@@ -374,6 +374,16 @@ impl RegistryContract {
             .persistent()
             .get(&DataKey::WorkerList)
             .unwrap_or(Vec::new(&env));
+        if let Some(pos) = list.iter().position(|x| x == id) {
+            list.remove(pos as u32);
+        }
+        env.storage().persistent().set(&DataKey::WorkerList, &list);
+
+        // topics: ("WrkDrg", id, caller)  data: ()
+        env.events().publish(
+            (symbol_short!("WrkDrg"), id, caller),
+            (),
+        );
         list.len()
     }
 

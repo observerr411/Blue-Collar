@@ -320,6 +320,51 @@ fn test_worker_count_after_registrations() {
     make_worker(&env, &contract, "w3", &owner);
 
     let client = RegistryContractClient::new(&env, &contract);
+    client.deregister(&Symbol::new(&env, "w2"), &owner);
+
+    let list = client.list_workers();
+    assert_eq!(list.len(), 2);
+    assert_eq!(list.get(0).unwrap(), Symbol::new(&env, "w1"));
+    assert_eq!(list.get(1).unwrap(), Symbol::new(&env, "w3"));
+}
+
+#[test]
+fn test_deregister_last_worker_empties_list() {
+    let (env, contract) = setup();
+    let owner = Address::generate(&env);
+    make_worker(&env, &contract, "w1", &owner);
+
+    let client = RegistryContractClient::new(&env, &contract);
+    client.deregister(&Symbol::new(&env, "w1"), &owner);
+
+    assert_eq!(client.list_workers().len(), 0);
+}
+
+#[test]
+#[should_panic(expected = "Not authorized")]
+fn test_deregister_non_owner_panics() {
+    let (env, contract) = setup();
+    let owner = Address::generate(&env);
+    let stranger = Address::generate(&env);
+    make_worker(&env, &contract, "w1", &owner);
+
+    let client = RegistryContractClient::new(&env, &contract);
+    client.deregister(&Symbol::new(&env, "w1"), &stranger);
+}
+
+#[test]
+#[should_panic(expected = "Worker not found")]
+fn test_deregister_nonexistent_worker_panics() {
+    let (env, contract) = setup();
+    let caller = Address::generate(&env);
+
+    let client = RegistryContractClient::new(&env, &contract);
+    client.deregister(&Symbol::new(&env, "ghost"), &caller);
+}
+
+#[test]
+#[should_panic(expected = "Worker not found")]
+fn test_deregister_twice_panics() {
     assert_eq!(client.worker_count(), 3);
 }
 
