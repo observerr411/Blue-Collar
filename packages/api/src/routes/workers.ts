@@ -12,6 +12,7 @@ import { toggleBookmark } from '../controllers/bookmarks.js'
 import { createReview, listReviews } from '../controllers/reviews.js'
 import { getAvailability, upsertAvailability } from '../controllers/availability.js'
 import { registerOnChain } from '../controllers/stellar.js'
+import { createContactRequest, getContactRequests, updateContactRequestStatus } from '../controllers/contact-request.js'
 import { authenticate, authorize } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
 import { upload, handleMulterError } from '../middleware/upload.js'
@@ -33,6 +34,11 @@ router.put('/:id/availability', authenticate, authorize('curator'), upsertAvaila
 
 // On-chain registration
 router.post('/:id/register-on-chain', authenticate, authorize('curator'), registerOnChain)
+
+// Contact requests
+router.post('/:id/contact', authenticate, createContactRequest)
+router.get('/:id/contacts', authenticate, authorize('curator'), getContactRequests)
+router.patch('/:id/contacts/:requestId', authenticate, authorize('curator'), updateContactRequestStatus)
 
 // Bookmarks
 router.post('/:id/bookmark', authenticate, toggleBookmark)
