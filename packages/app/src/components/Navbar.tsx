@@ -342,6 +342,14 @@ export default function Navbar() {
                       Dashboard
                     </DropdownMenu.Item>
                   )}
+                  {user.role === "admin" && (
+                    <DropdownMenu.Item
+                      onSelect={() => router.push("/dashboard/admin")}
+                      className="cursor-pointer rounded px-3 py-2 hover:bg-gray-100 outline-none dark:hover:bg-gray-800 dark:text-gray-200"
+                    >
+                      Admin Analytics
+                    </DropdownMenu.Item>
+                  )}
                   <DropdownMenu.Separator className="my-1 h-px bg-gray-100 dark:bg-gray-700" />
                   <DropdownMenu.Item
                     onSelect={logout}
@@ -415,6 +423,11 @@ export default function Navbar() {
                   {(user.role === "curator" || user.role === "admin") && (
                     <Link href="/dashboard" className="rounded px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-200">
                       Dashboard
+                    </Link>
+                  )}
+                  {user.role === "admin" && (
+                    <Link href="/dashboard/admin" className="rounded px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-200">
+                      Admin Analytics
                     </Link>
                   )}
                   <button

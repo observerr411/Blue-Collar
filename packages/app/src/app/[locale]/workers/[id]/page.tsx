@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { BadgeCheck, MapPin, Mail, Phone, ArrowLeft } from "lucide-react";
+import { BadgeCheck, MapPin, Mail, Phone, ArrowLeft, QrCode } from "lucide-react";
 import Link from "next/link";
 import TipModal from "@/components/TipModal";
 import TransactionHistory from "@/components/TransactionHistory";
@@ -8,6 +8,7 @@ import BookmarkButton from "@/components/BookmarkButton";
 import StarRating from "@/components/StarRating";
 import ReviewCard from "@/components/ReviewCard";
 import ReviewForm from "@/components/ReviewForm";
+import QRCodeButton from "@/components/QRCodeButton";
 import type { Worker, ApiResponse, Review } from "@/types";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api";
@@ -95,6 +96,10 @@ export default async function WorkerProfilePage({
               {worker.isVerified && (
                 <BadgeCheck size={20} className="text-blue-500" aria-label="Verified" />
               )}
+              <QRCodeButton
+                workerName={worker.name}
+                workerId={worker.id}
+              />
             </div>
             <span className="mt-1 inline-block rounded-full bg-blue-50 px-3 py-0.5 text-sm font-medium text-blue-600">
               {worker.category.name}
