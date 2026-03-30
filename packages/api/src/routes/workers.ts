@@ -10,6 +10,7 @@ import {
 } from '../controllers/workers.js'
 import { toggleBookmark } from '../controllers/bookmarks.js'
 import { createReview, listReviews } from '../controllers/reviews.js'
+import { getAvailability, upsertAvailability } from '../controllers/availability.js'
 import { authenticate, authorize } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
 import { upload, handleMulterError } from '../middleware/upload.js'
@@ -24,6 +25,10 @@ router.post('/', authenticate, authorize('curator'), validate(createWorkerRules)
 router.put('/:id', authenticate, authorize('curator'), updateWorker)
 router.delete('/:id', authenticate, authorize('curator'), deleteWorker)
 router.patch('/:id/toggle', authenticate, authorize('curator'), toggleActivation)
+
+// Availability
+router.get('/:id/availability', getAvailability)
+router.put('/:id/availability', authenticate, authorize('curator'), upsertAvailability)
 
 // Bookmarks
 router.post('/:id/bookmark', authenticate, toggleBookmark)
