@@ -27,12 +27,14 @@ Many skilled workers lack a platform to help them get noticed. Meanwhile, countl
 - [Smart Contracts](#smart-contracts)
 - [Getting Started](#getting-started)
 - [Environment Variables](#environment-variables)
+- [Production Deployment](#production-deployment)
 - [Roadmap](#roadmap)
 - [Community](#community)
 - [Contributing](#contributing)
 - [License](#license)
 - [Quick Start Guide](packages/api/QUICK_START_GUIDE.md)
 - [API Documentation](packages/api/DOCUMENTATION.json)
+- [API cURL Examples](packages/api/CURL_EXAMPLES.md)
 - [Security Policy](packages/api/SECURITY.md)
 - [Contributing Guide](CONTRIBUTING.md)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
@@ -42,18 +44,20 @@ Many skilled workers lack a platform to help them get noticed. Meanwhile, countl
 
 ## Overview
 
-| Feature | Description |
-|---|---|
-| Decentralised listings | Worker profiles are anchored on-chain via Stellar Soroban smart contracts |
-| Community curation | Curators (verified community members) create and manage worker listings |
-| Trustless payments | Tips and payments flow directly between users and workers via the Market contract |
-| Google OAuth | Users can sign in with Google in addition to email/password |
-| Role-based access | Three roles: `user`, `curator`, `admin` |
-| Media uploads | Profile images handled with method-spoofed PUT requests (multipart/form-data) |
+| Feature                | Description                                                                       |
+| ---------------------- | --------------------------------------------------------------------------------- |
+| Decentralised listings | Worker profiles are anchored on-chain via Stellar Soroban smart contracts         |
+| Community curation     | Curators (verified community members) create and manage worker listings           |
+| Trustless payments     | Tips and payments flow directly between users and workers via the Market contract |
+| Google OAuth           | Users can sign in with Google in addition to email/password                       |
+| Role-based access      | Three roles: `user`, `curator`, `admin`                                           |
+| Media uploads          | Profile images handled with method-spoofed PUT requests (multipart/form-data)     |
 
 ---
 
 ## Architecture
+
+![BlueCollar Architecture](docs/architecture/system-overview.svg)
 
 ```
 User / Browser
@@ -74,6 +78,8 @@ User / Browser
 - The **Registry Contract** (Rust/Soroban) anchors worker registrations on the Stellar blockchain, providing immutable proof of listing.
 - The **Market Contract** (Rust/Soroban) handles on-chain tip/payment transfers between users and workers using Stellar tokens (XLM or custom assets).
 - The **App** is a Next.js frontend that consumes the API and interacts with Stellar wallets (Freighter, etc.).
+
+Diagram maintenance note: update `docs/architecture/system-overview.svg` whenever major architectural relationships or data flows change.
 
 ---
 
@@ -127,13 +133,13 @@ The backend REST API built with **Node.js**, **Express**, and **TypeScript**. Us
 
 **Key modules:**
 
-| Module | Purpose |
-|---|---|
-| `controllers/auth.ts` | Login, register, logout, password reset |
-| `controllers/workers.ts` | CRUD for worker listings |
-| `controllers/categories.ts` | Category listing and lookup |
-| `middleware/auth.ts` | JWT authentication + role-based authorization |
-| `prisma/schema.prisma` | Database schema (User, Worker, Category) |
+| Module                      | Purpose                                       |
+| --------------------------- | --------------------------------------------- |
+| `controllers/auth.ts`       | Login, register, logout, password reset       |
+| `controllers/workers.ts`    | CRUD for worker listings                      |
+| `controllers/categories.ts` | Category listing and lookup                   |
+| `middleware/auth.ts`        | JWT authentication + role-based authorization |
+| `prisma/schema.prisma`      | Database schema (User, Worker, Category)      |
 
 **Tech stack:** Express · TypeScript · Prisma · PostgreSQL · Argon2 · JWT · Passport (Google OAuth) · Nodemailer · Vitest
 
@@ -180,18 +186,19 @@ Base URL: `http://localhost:3000/api`
 
 ### Auth
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/auth/login` | Login with email + password |
-| `POST` | `/auth/register` | Create a new account |
-| `PUT` | `/auth/verify-account` | Verify email address |
-| `DELETE` | `/auth/logout` | Logout (requires auth) |
-| `POST` | `/auth/forgot-password` | Request password reset email |
-| `PUT` | `/auth/reset-password` | Reset password with token |
-| `GET` | `/auth/google` | Initiate Google OAuth |
-| `GET` | `/auth/google/callback` | Google OAuth callback |
+| Method   | Endpoint                | Description                  |
+| -------- | ----------------------- | ---------------------------- |
+| `POST`   | `/auth/login`           | Login with email + password  |
+| `POST`   | `/auth/register`        | Create a new account         |
+| `PUT`    | `/auth/verify-account`  | Verify email address         |
+| `DELETE` | `/auth/logout`          | Logout (requires auth)       |
+| `POST`   | `/auth/forgot-password` | Request password reset email |
+| `PUT`    | `/auth/reset-password`  | Reset password with token    |
+| `GET`    | `/auth/google`          | Initiate Google OAuth        |
+| `GET`    | `/auth/google/callback` | Google OAuth callback        |
 
 **Login response example:**
+
 ```json
 {
   "data": {
@@ -211,21 +218,21 @@ Base URL: `http://localhost:3000/api`
 
 ### Categories
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/categories` | List all categories |
-| `GET` | `/categories/:id` | Get a single category |
+| Method | Endpoint          | Description           |
+| ------ | ----------------- | --------------------- |
+| `GET`  | `/categories`     | List all categories   |
+| `GET`  | `/categories/:id` | Get a single category |
 
 ### Workers (Curator)
 
-| Method | Endpoint | Description | Auth |
-|---|---|---|---|
-| `GET` | `/workers` | List active workers (paginated) | Public |
-| `GET` | `/workers/:id` | Get a single worker | Public |
-| `POST` | `/workers` | Create a worker listing | Curator |
-| `POST` | `/workers/:id` + `X-HTTP-Method: PUT` | Update a worker (supports file upload) | Curator |
-| `DELETE` | `/workers/:id` | Delete a worker | Curator |
-| `PATCH` | `/workers/:id/toggle` | Toggle active status | Curator |
+| Method   | Endpoint                              | Description                            | Auth    |
+| -------- | ------------------------------------- | -------------------------------------- | ------- |
+| `GET`    | `/workers`                            | List active workers (paginated)        | Public  |
+| `GET`    | `/workers/:id`                        | Get a single worker                    | Public  |
+| `POST`   | `/workers`                            | Create a worker listing                | Curator |
+| `POST`   | `/workers/:id` + `X-HTTP-Method: PUT` | Update a worker (supports file upload) | Curator |
+| `DELETE` | `/workers/:id`                        | Delete a worker                        | Curator |
+| `PATCH`  | `/workers/:id/toggle`                 | Toggle active status                   | Curator |
 
 > **Method spoofing for file uploads:** HTML forms and `multipart/form-data` requests only support `GET`/`POST`. To update a worker with a file upload, send a `POST` request with the header `X-HTTP-Method: PUT`. The API uses the [`method-override`](https://www.npmjs.com/package/method-override) middleware to rewrite the request method to `PUT` before it reaches the route handler, so the update route behaves identically to a standard `PUT`.
 >
@@ -301,12 +308,13 @@ The same steps apply to the Market contract. The `admin` argument must match the
 
 Soroban persistent storage entries have a TTL (time-to-live) measured in ledgers. Without extension, entries can expire and be pruned from the ledger.
 
-| Constant | Value | Approximate duration |
-|---|---|---|
+| Constant        | Value           | Approximate duration   |
+| --------------- | --------------- | ---------------------- |
 | `TTL_EXTEND_TO` | 535,000 ledgers | ~1 year (at 5s/ledger) |
-| `TTL_THRESHOLD` | 267,500 ledgers | ~6 months |
+| `TTL_THRESHOLD` | 267,500 ledgers | ~6 months              |
 
 **How it works:**
+
 - Every write to persistent storage (`register`, `toggle`) automatically calls `extend_ttl` on the affected key.
 - `extend_ttl(key, threshold, extend_to)` only extends if the current TTL is below `threshold`, avoiding unnecessary fees.
 - A public `extend_worker_ttl(id)` function is available so anyone (users, bots, the app) can refresh a worker entry's TTL without needing special permissions.
@@ -338,11 +346,11 @@ pnpm docker:up
 pnpm docker:down
 ```
 
-| Service | URL |
-|---|---|
-| API | http://localhost:3000 |
+| Service         | URL                   |
+| --------------- | --------------------- |
+| API             | http://localhost:3000 |
 | Adminer (DB UI) | http://localhost:8080 |
-| PostgreSQL | localhost:5432 |
+| PostgreSQL      | localhost:5432        |
 
 > The API container runs `prisma migrate deploy` automatically on startup.
 
@@ -390,38 +398,50 @@ pnpm dev           # start Next.js on :3001
 
 All variables for the API live in `packages/api/.env` (copy from `.env.example`):
 
-| Variable | Description |
-|---|---|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `JWT_SECRET` | Secret key for signing JWTs |
-| `PORT` | API port (default: 3000) |
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
-| `MAIL_HOST` | SMTP host |
-| `MAIL_PORT` | SMTP port |
-| `MAIL_USER` | SMTP username |
-| `MAIL_PASS` | SMTP password |
-| `APP_URL` | Public URL of the app (used in emails) |
+| Variable               | Description                            |
+| ---------------------- | -------------------------------------- |
+| `DATABASE_URL`         | PostgreSQL connection string           |
+| `JWT_SECRET`           | Secret key for signing JWTs            |
+| `PORT`                 | API port (default: 3000)               |
+| `GOOGLE_CLIENT_ID`     | Google OAuth client ID                 |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret             |
+| `MAIL_HOST`            | SMTP host                              |
+| `MAIL_PORT`            | SMTP port                              |
+| `MAIL_USER`            | SMTP username                          |
+| `MAIL_PASS`            | SMTP password                          |
+| `APP_URL`              | Public URL of the app (used in emails) |
+
+---
+
+## Production Deployment
+
+Use the production runbook in [docs/PRODUCTION_DEPLOYMENT.md](./docs/PRODUCTION_DEPLOYMENT.md) for:
+
+- API/app/database environment setup
+- Docker production examples
+- SSL/TLS reverse-proxy setup
+- Monitoring and logging recommendations
+- Backup and disaster recovery procedures
 
 ---
 
 ## Roadmap
 
-| Status | Feature |
-|---|---|
-| ✅ Done | Worker CRUD with curator-gated listings |
-| ✅ Done | JWT auth + email verification + password reset |
-| ✅ Done | Google OAuth 2.0 |
-| ✅ Done | Registry & Market Soroban contracts (testnet) |
-| ✅ Done | Escrow payments with time-locked cancellation |
-| ✅ Done | Role-based access (user / curator / admin) |
-| ✅ Done | Profile image uploads (Multer + Sharp) |
+| Status         | Feature                                             |
+| -------------- | --------------------------------------------------- |
+| ✅ Done        | Worker CRUD with curator-gated listings             |
+| ✅ Done        | JWT auth + email verification + password reset      |
+| ✅ Done        | Google OAuth 2.0                                    |
+| ✅ Done        | Registry & Market Soroban contracts (testnet)       |
+| ✅ Done        | Escrow payments with time-locked cancellation       |
+| ✅ Done        | Role-based access (user / curator / admin)          |
+| ✅ Done        | Profile image uploads (Multer + Sharp)              |
 | 🔄 In progress | Next.js frontend (worker discovery, wallet connect) |
-| 🔄 In progress | Freighter wallet integration |
-| 📋 Planned | Mainnet deployment |
-| 📋 Planned | Worker reviews & ratings |
-| 📋 Planned | Push notifications |
-| 📋 Planned | Mobile app (React Native) |
+| 🔄 In progress | Freighter wallet integration                        |
+| 📋 Planned     | Mainnet deployment                                  |
+| 📋 Planned     | Worker reviews & ratings                            |
+| 📋 Planned     | Push notifications                                  |
+| 📋 Planned     | Mobile app (React Native)                           |
 
 ---
 

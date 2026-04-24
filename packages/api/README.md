@@ -4,6 +4,7 @@ REST API for the BlueCollar platform — connecting skilled workers with users v
 
 - [Quick Start Guide](./QUICK_START_GUIDE.md)
 - [Full API Documentation](./DOCUMENTATION.json)
+- [cURL Examples](./CURL_EXAMPLES.md)
 - [Security Policy](./SECURITY.md)
 
 ---
