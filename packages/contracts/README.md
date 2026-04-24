@@ -2,6 +2,8 @@
 
 Two smart contracts deployed on Stellar (Soroban): **Registry** and **Market**.
 
+- [Registry and Market Integration Guide](./INTEGRATION_GUIDE.md)
+
 - **Registry** — manages on-chain worker profiles, curator-gated registration, and worker self-management.
 - **Market** — handles direct tips and escrow-based payments between users and workers, with a configurable protocol fee.
 
@@ -634,11 +636,11 @@ The off-chain API is responsible for computing these digests before calling `reg
 ### Computing hashes (Node.js example)
 
 ```js
-import { createHash } from "crypto";
+import { createHash } from 'crypto';
 
-const locationHash = createHash("sha256").update("london:gb").digest("hex"); // pass as BytesN<32> to the contract
+const locationHash = createHash('sha256').update('london:gb').digest('hex'); // pass as BytesN<32> to the contract
 
-const contactHash = createHash("sha256").update("[email]").digest("hex");
+const contactHash = createHash('sha256').update('[email]').digest('hex');
 ```
 
 ### Computing hashes (Rust example)
